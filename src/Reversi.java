@@ -3,11 +3,14 @@ import java.awt.*;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.*;
+import java.util.List;
 
 import static java.awt.Color.black;
 import static java.awt.Color.red;
 import static java.awt.Color.white;
-
+import static java.lang.Integer.MIN_VALUE;
+import static java.lang.Integer.MAX_VALUE;
 
 /**
  * Created by 中奇 on 2017/9/14.
@@ -16,9 +19,18 @@ public class Reversi extends JPanel implements MouseListener {
     final private int ROWS = 8;
     final private int width = 80;
 
-    int[][] allChess = new int[8][8];
+    public int[][] allChess = new int[8][8];
 
     int x, y;
+
+    public class point {
+        int x, y;
+
+        point(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
 
     Boolean isblack = true; //true-black，false-white
     Boolean canPlay = true;
@@ -33,24 +45,26 @@ public class Reversi extends JPanel implements MouseListener {
                 if (allChess[i][j] == 0) flag = true;
             }
         }
-        if (flag == false && scoreBlack() > scoreWhite()) {
+        if (flag == false && scoreBlack(allChess) > scoreWhite(allChess)) {
             JOptionPane.showMessageDialog(this, "Black win");
-        }
-        else if (flag == false && scoreWhite() > scoreBlack()){
+        } else if (flag == false && scoreWhite(allChess) > scoreBlack(allChess)) {
             JOptionPane.showMessageDialog(this, "White win");
         }
-        if (scoreWhite()==0){
+        if (scoreWhite(allChess) == 0) {
             JOptionPane.showMessageDialog(this, "Black win");
-            flag=false;
-        }
-        else if (scoreBlack()==0){
+            flag = false;
+        } else if (scoreBlack(allChess) == 0) {
             JOptionPane.showMessageDialog(this, "White win");
-            flag=false;
+            flag = false;
         }
 
-        if (flag=true) canPlay=true;
-        else canPlay=false;
+        if (flag = true) canPlay = true;
+        else canPlay = false;
         return flag;
+    }
+
+    void remove(int i, int j) {
+        allChess[i][j] = 0;
     }
 
     Reversi() {
@@ -70,7 +84,7 @@ public class Reversi extends JPanel implements MouseListener {
 
     }
 
-    public int scoreBlack() {
+    public int scoreBlack(int[][] allChess) {
         int score = 0;
         for (int i = 0; i < ROWS; i++) {
             for (int j = 0; j < ROWS; j++) {
@@ -80,7 +94,7 @@ public class Reversi extends JPanel implements MouseListener {
         return score;
     }
 
-    public int scoreWhite() {
+    public int scoreWhite(int[][] allChess) {
         int score = 0;
         for (int i = 0; i < ROWS; i++) {
             for (int j = 0; j < ROWS; j++) {
@@ -132,7 +146,7 @@ public class Reversi extends JPanel implements MouseListener {
         g.drawString("Player:", 3, 60);
         g.drawString("Score:", 600, 60);
         g.setColor(red);
-        g.drawString(scoreBlack()+" : "+scoreWhite(), 680, 60);
+        g.drawString(scoreBlack(allChess) + " : " + scoreWhite(allChess), 680, 60);
         if (isblack) {
             g.setColor(black);
             g.fillOval(80, 40, 26, 26);
@@ -146,7 +160,7 @@ public class Reversi extends JPanel implements MouseListener {
         }
     }
 
-    public void ChangeColor1(int x1, int y1, int x2, int y2) {
+    public void ChangeColor1(int x1, int y1, int x2, int y2, int[][] allChess) {
         if (x1 == x2) {
             for (int i = Math.min(y1, y2); i < (Math.max(y1, y2)); i++) {
                 allChess[x1][i] = allChess[x2][y2];
@@ -154,7 +168,7 @@ public class Reversi extends JPanel implements MouseListener {
         }
     }
 
-    public void ChangeColor2(int x1, int y1, int x2, int y2) {
+    public void ChangeColor2(int x1, int y1, int x2, int y2, int[][] allChess) {
         if (y1 == y2) {
             for (int i = Math.min(x1, x2); i < (Math.max(x1, x2)); i++) {
                 allChess[i][y1] = allChess[x2][y2];
@@ -162,7 +176,7 @@ public class Reversi extends JPanel implements MouseListener {
         }
     }
 
-    public void ChangeColor3(int x1, int y1, int x2, int y2) {
+    public void ChangeColor3(int x1, int y1, int x2, int y2, int[][] allChess) {
         if (x2 - x1 == y2 - y1) {
             int i = Math.min(y1, y2);
             int j = Math.min(x1, x2);
@@ -174,7 +188,7 @@ public class Reversi extends JPanel implements MouseListener {
         }
     }
 
-    public void ChangeColor4(int x1, int y1, int x2, int y2) {
+    public void ChangeColor4(int x1, int y1, int x2, int y2, int[][] allChess) {
         if (x2 - x1 == y1 - y2) {
             int i = Math.min(y1, y2);
             int j = Math.max(x1, x2);
@@ -186,7 +200,7 @@ public class Reversi extends JPanel implements MouseListener {
         }
     }
 
-    public boolean CanUse(int x, int y) {
+    public boolean CanUse(int x, int y, int[][] allChess, boolean isblack) {
         boolean flag = false;
         int col;
         if (isblack) col = 1;
@@ -243,7 +257,7 @@ public class Reversi extends JPanel implements MouseListener {
         return flag;
     }
 
-    public void Use(int x, int y) {
+    public void Use(int x, int y, int[][] allChess, boolean isblack) {
         int col;
         if (isblack) col = 1;
         else col = -1;
@@ -255,7 +269,7 @@ public class Reversi extends JPanel implements MouseListener {
                         if (allChess[i][n] == allChess[i][j] || allChess[i][n] == 0) a = true;
                     }
                     if (a == false) {
-                        ChangeColor1(x, y, i, j);
+                        ChangeColor1(x, y, i, j, allChess);
                     }
                 } else if (j == y && allChess[i][j] == col) {
                     boolean a = false;
@@ -263,7 +277,7 @@ public class Reversi extends JPanel implements MouseListener {
                         if (allChess[m][j] == allChess[i][j] || allChess[m][j] == 0) a = true;
                     }
                     if (a == false) {
-                        ChangeColor2(x, y, i, j);
+                        ChangeColor2(x, y, i, j, allChess);
                     }
                 } else if (x - i == y - j && allChess[i][j] == col) {
                     boolean a = false;
@@ -278,7 +292,7 @@ public class Reversi extends JPanel implements MouseListener {
                     }
                     if (a == false) {
 
-                        ChangeColor3(x, y, i, j);
+                        ChangeColor3(x, y, i, j, allChess);
                     }
                 } else if (x - i == j - y && allChess[i][j] == col) {
                     boolean a = false;
@@ -292,7 +306,7 @@ public class Reversi extends JPanel implements MouseListener {
                         n--;
                     }
                     if (a == false) {
-                        ChangeColor4(x, y, i, j);
+                        ChangeColor4(x, y, i, j, allChess);
                     }
                 }
             }
@@ -356,6 +370,99 @@ public class Reversi extends JPanel implements MouseListener {
         return num;
     }
 
+    //    public int n = 0;
+    Set set = new HashSet();
+    Integer num = MIN_VALUE;
+
+
+    public point AI(int[][] chess) {
+        point coordinate = new point(0, 0);
+        int valueWhite = MIN_VALUE;
+
+        if (canPlay) {
+            for (int i = 0; i < ROWS; i++) {
+                for (int j = 0; j < ROWS; j++) {
+
+                    int[][] newChess2 = new int[ROWS][ROWS];
+                    for (int in = 0; in < ROWS; in++) {
+                        for (int jn = 0; jn < ROWS; jn++) {
+                            newChess2[in][jn] = chess[in][jn];
+                        }
+                    }
+
+                    if (CanUse(i, j, chess, false)) {
+                        point cW = new point(0, 0);
+                        //copy chess
+                        int[][] newChess = new int[ROWS][ROWS];
+                        for (int in = 0; in < ROWS; in++) {
+                            for (int jn = 0; jn < ROWS; jn++) {
+                                newChess[in][jn] = chess[in][jn];
+                            }
+                        }
+                        newChess[i][j] = -1;
+                        Use(i, j, newChess, false);
+                        int valueBlack = MIN_VALUE;
+                        point cB = new point(0, 0);
+                        for (int i1 = 0; i1 < ROWS; i1++) {
+                            for (int j1 = 0; j1 < ROWS; j1++) {
+                                int[][] newChess1 = new int[ROWS][ROWS];
+                                for (int in = 0; in < ROWS; in++) {
+                                    for (int jn = 0; jn < ROWS; jn++) {
+                                        newChess1[in][jn] = newChess[in][jn];
+                                    }
+                                }
+                                if (CanUse(i1, j1, newChess1, true)) {
+                                    newChess1[i1][j1] = 1;
+                                    Use(i1, j1, newChess1, true);
+                                    if (getValue(newChess1, true) > valueBlack) {
+                                        valueBlack = getValue(newChess1, true);
+                                        cB.x = i1;
+                                        cB.y = j1;
+                                        cW.x = i;
+                                        cW.y = j;
+                                    }
+                                }
+                            }
+                        }
+                        newChess2[cW.x][cW.y] = -1;
+                        Use(cW.x, cW.y, newChess2, false);
+
+                        newChess2[cB.x][cB.y] = 1;
+                        Use(cB.x, cB.y, newChess2, true);
+
+                        if (getValue(newChess2, false) > valueWhite) {
+                            valueWhite = getValue(newChess2, false);
+                            coordinate.y = j;
+                            coordinate.x = i;
+                        }
+//                        chess[i][j] = 0;
+                    }
+                }
+            }
+        }
+        return coordinate;
+    }
+
+    int getValue(int[][] a, Boolean flag) {
+        int[][] b = {{100, -5, 10, 5, 5, 10, -5, 100},
+                {-5, -45, 1, 1, 1, 1, -45, -5},
+                {10, 1, 3, 2, 2, 3, 1, 10},
+                {5, 1, 2, 1, 1, 2, 1, 5},
+                {5, 1, 2, 1, 1, 2, 1, 5},
+                {10, 1, 3, 2, 2, 3, 1, 10},
+                {-5, -45, 1, 1, 1, 1, -45, -5},
+                {100, -5, 10, 5, 5, 10, -5, 100}};
+        int value = 0;
+        for (int i = 0; i < ROWS; i++) {
+            for (int j = 0; j < ROWS; j++) {
+                if (flag == true && a[i][j] == 1) value += b[i][j];
+                if (flag == false && a[j][j] == -1) value += b[i][j];
+            }
+        }
+        return value;
+    }
+
+
     @Override
     public void mousePressed(MouseEvent e) {
         canplay();
@@ -374,36 +481,36 @@ public class Reversi extends JPanel implements MouseListener {
 //                chessX[countX++] = x;
 //                chessY[countY++] =
             if (twoPlayer.isSelected()) {
-                if (isblack && CanUse(x, y) && allChess[x][y] == 0) {
+                if (isblack && CanUse(x, y, allChess, isblack) && allChess[x][y] == 0) {
                     allChess[x][y] = 1;
-                    Use(x, y);
+                    Use(x, y, allChess, isblack);
                     isblack = false;
-                } else if (CanUse(x, y) && allChess[x][y] == 0) {
+                } else if (CanUse(x, y, allChess, isblack) && allChess[x][y] == 0) {
                     allChess[x][y] = -1;
-                    Use(x, y);
+                    Use(x, y, allChess, isblack);
                     isblack = true;
                 }
             } else if (onePlayer.isSelected()) {
-                if (isblack && CanUse(x, y) && allChess[x][y] == 0) {
+                System.out.println("onePlayer");
+                if (isblack && CanUse(x, y, allChess, isblack) && allChess[x][y] == 0) {
 
                     allChess[x][y] = 1;
-                    Use(x, y);
+                    Use(x, y, allChess, isblack);
                     isblack = false;
-//                } else {
-                    int num = 0;
-                    int x1 = 0;
-                    int y1 = 0;
+                } else if (isblack == false) {
+                    int[][] newChess = new int[8][8];
                     for (int i = 0; i < ROWS; i++) {
                         for (int j = 0; j < ROWS; j++) {
-                            if (canUse1(i, j) > num && CanUse(i, j) && allChess[i][j] == 0) {
-                                num = canUse1(i, j);
-                                x1 = i;
-                                y1 = j;
-                            }
+                            newChess[i][j] = allChess[i][j];
                         }
                     }
+
+                    point c = new point(0, 0);
+                    point x = AI(newChess);
+                    int x1 = x.x;
+                    int y1 = x.y;
                     allChess[x1][y1] = -1;
-                    Use(x1, y1);
+                    Use(x1, y1, allChess, isblack);
                     isblack = true;
                 }
             }
